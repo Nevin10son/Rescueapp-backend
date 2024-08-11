@@ -15,8 +15,8 @@ mongoose.connect("mongodb+srv://Nevin:nevintensonk@cluster0.0rfrr.mongodb.net/re
 app.post("/Add",async(req,res)=>{
     let input = req.body
     let token = req.headers.token
-    jwt.verify(token,"WayanadApp",async(error,decoded)=>{
-        if(decoded){
+    jwt.verify(token,"WayanadApp",async(error,decoded) => {
+        if(decoded) {
             console.log(input)
             let result = new peopleModel(input)
             await result.save()
@@ -27,15 +27,36 @@ app.post("/Add",async(req,res)=>{
     })
 })
 
-app.post("/AdminSignIn",async(req,res)=>{
-    let input=req.body
-    let result=adminModel.find({username:input.username}).then(
-        (items)=>{
-            if (items.length>0){
-                const passwordValidator=bcrypt.compareSync(input.password,items[0].password)
+
+app.post("/ViewAll",(req,res) => {
+    let token = req.headers.token
+    jwt.verify(token,"WayanadApp",(error,decoded) => {
+        if(decoded) {
+            peopleModel.find().then(
+                (items) => {
+                    console.log(items)
+                    res.json(items)
+                }
+            ).catch(
+                (error) => {
+                    res.json({"Status":"Error"})
+                }
+            )
+        }else{
+            res.json({"Status":"Invalid authentication"})
+        }
+    })
+})
+
+app.post("/AdminSignIn",async(req,res) => {
+    let input = req.body
+    let result = adminModel.find({username:input.username}).then(
+        (items) => {
+            if (items.length>0) {
+                const passwordValidator = bcrypt.compareSync(input.password,items[0].password)
                 if (passwordValidator){
-                    jwt.sign({username:input.username},"WayanadApp",{expiresIn:"1d"},(error,token)=>{
-                        if(error){
+                    jwt.sign({username:input.username},"WayanadApp",{expiresIn:"1d"},(error,token) => {
+                        if(error) {
                             res.json({"Status":"Error","Error":error})
                         }else{
                             console.log(input)
