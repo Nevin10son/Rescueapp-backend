@@ -11,6 +11,36 @@ app.use(cors())
 
 mongoose.connect("mongodb+srv://Nevin:nevintensonk@cluster0.0rfrr.mongodb.net/rescueapp?retryWrites=true&w=majority&appName=Cluster0")
 
+app.post("/AdminSignIn",async(req,res)=>{
+    let input=req.body
+    let result=adminModel.find({username:input.username}).then(
+        (items)=>{
+            if (items.length>0){
+                const passwordValidator=bcrypt.compareSync(input.password,items[0].password)
+                if (passwordValidator){
+                    jwt.sign({username:input.username},"WayanadApp",{expiresIn:"1d"},(error,token)=>{
+                        if(error){
+                            res.json({"Status":"Error","Error":error})
+                        }else{
+                            console.log(input)
+                            res.json({"Status":"Success","token":token,"userId":items[0]._id})
+                        }
+                    })
+                }else{
+                    res.json({"Status":"Incorrect password"})
+                }
+            }else{
+                res.json({"Status":"Invalid username"})
+            }
+        }
+    ).catch(
+        (error)=>{
+            res.json({"Status":"Error"})
+        }
+    )
+})
+
+
 app.post("/AdminSignUp", async (req, res) => {
     let input = req.body
     let hashedPassword = bcrypt.hashSync(input.password, 10)
